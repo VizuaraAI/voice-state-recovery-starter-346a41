@@ -1,0 +1,26 @@
+# Core
+numpy>=1.26,<3
+pyyaml>=6.0.2
+tqdm>=4.66
+pandas>=2.2
+
+# Data + modelling
+datasets>=3.0.0
+scikit-learn>=1.5
+torch>=2.4
+transformers>=4.44
+sentence-transformers>=3.0
+
+# Speech (needed from Week 3 onward, for the audio-in-the-loop experiments)
+soundfile>=0.12.1
+librosa>=0.10.2
+faster-whisper>=1.0.3
+
+# Plotting / reporting
+matplotlib>=3.9
+
+# Optional LLM backends for the response generator and the LLM judge.
+# The repo runs without these (offline rule-based backend); install when you
+# are ready to plug in a real model.
+# anthropic>=0.40
+# openai>=1.50

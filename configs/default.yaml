@@ -1,0 +1,71 @@
+# Default configuration for the ReState experiments.
+# Everything the paper's results table needs is controlled from this file.
+# Copy it (configs/my_run.yaml) rather than editing it in place, so that every
+# row of experiments/log_template.md can point at an exact config.
+
+run:
+  name: baseline-v0
+  seed: 13
+  output_dir: runs/
+
+data:
+  # "synthetic" works with zero downloads and is the right place to start.
+  # Switch to "multiwoz" once you have run the pipeline end to end once.
+  source: synthetic          # synthetic | multiwoz | spokenwoz
+  split: validation
+  max_dialogues: 200
+  # SpokenWOZ needs a manual download (see scripts/download_data.sh).
+  spokenwoz_dir: data/spokenwoz
+
+interruptions:
+  # The injection protocol. Each dialogue gets exactly one interruption event
+  # drawn from these types, inserted at the given position inside the agent turn.
+  types:
+    - backchannel
+    - barge_in_stop
+    - self_correction
+    - topic_switch
+    - post_pause_resume
+  # Fraction of the agent's turn that has been spoken aloud when the user cuts in.
+  # 0.0 = user cuts in immediately, 1.0 = user waits for the full turn.
+  onset_fractions: [0.2, 0.5, 0.8]
+  per_type_count: 40
+
+agent:
+  # naive_resume | restart_turn | full_context_llm | cascaded_dst | restate
+  policy: restate
+  backend: offline           # offline | anthropic | openai
+  model: claude-sonnet-5     # used only when backend != offline
+  max_slots: 12
+
+restate:
+  use_commitment_ledger: true
+  use_typology: true
+  use_resumption_planner: true
+  use_state_edit_operator: true
+  # How the typology classifier is obtained: "rules" needs no training,
+  # "learned" loads the checkpoint trained by src/train.py.
+  typology_model: rules      # rules | learned
+  typology_checkpoint: runs/typology/model.joblib
+  # A slot is only treated as heard by the user if the playback cursor passed it.
+  commitment_threshold: 0.0
+
+eval:
+  metrics:
+    - jga_post            # joint goal accuracy after recovery
+    - cir                 # correction incorporation rate
+    - sir                 # stale information rate (lower is better)
+    - intent_preservation
+    - task_success
+    - recovery_latency_ms
+  bootstrap_samples: 1000
+  report_path: runs/report.json
+
+latency:
+  # Simulated per-component budget in milliseconds, used to report recovery
+  # latency without needing a real-time audio stack on day one.
+  asr_partial_ms: 160
+  turn_taking_ms: 40
+  typology_ms: 25
+  state_edit_ms: 15
+  planner_ms: 20
